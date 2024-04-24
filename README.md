@@ -37,7 +37,7 @@ static BenchTimer BM_rand(void) {
 int main(void) {
   srand(time(NULL));
 
-  // run BM_rand() 1000 times and run a warmup 10 times
+  // run BM_rand() 10000 times and run a warmup 10 times
   BENCH(BM_rand(), 10000, 10);
 
   return 0;
