@@ -40,13 +40,13 @@ static BenchTimer BM_linear_simd128_find(const usize arr_length) {
 
   __m128i target_mask = _mm_set1_epi32(target);
   usize index = 0;
-  for (; !found && arr_length - index >= 4; index += 4) {
+  for (; arr_length - index >= 4; index += 4) {
     __m128i data = _mm_load_si128((void *)(arr + index));
-    int bitmask = _mm_movemask_epi8(_mm_cmpeq_epi32(data, target_mask));
+    // using ps here is a bit dirty right?
+    int bitmask = _mm_movemask_ps(_mm_cmpeq_epi32(data, target_mask));
     if (bitmask) {
       found = true;
-      index +=
-          (__builtin_ctz(bitmask) >> 4); // TODO: is this correct am I retarded?
+      index += __builtin_ctz(bitmask);
       break;
     }
   }
@@ -78,11 +78,10 @@ static BenchTimer BM_linear_simd256_find(const usize arr_length) {
     __m256i target_mask = _mm256_set1_epi32(target);
     for (; !found && arr_length - index >= 8; index += 8) {
       __m256i data = _mm256_load_si256((void *)(arr + index));
-      int bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi32(data, target_mask));
+      int bitmask = _mm256_movemask_ps(_mm256_cmpeq_epi32(data, target_mask));
       if (bitmask) {
         found = true;
-        index += (__builtin_ctz(bitmask) >>
-                  4); // TODO: is this correct am I retarded?
+        index += __builtin_ctz(bitmask);
         break;
       }
     }
@@ -92,11 +91,10 @@ static BenchTimer BM_linear_simd256_find(const usize arr_length) {
     __m128i target_mask = _mm_set1_epi32(target);
     if (!found && arr_length - index >= 4) {
       __m128i data = _mm_load_si128((void *)(arr + index));
-      int bitmask = _mm_movemask_epi8(_mm_cmpeq_epi32(data, target_mask));
+      int bitmask = _mm_movemask_ps(_mm_cmpeq_epi32(data, target_mask));
       if (bitmask) {
         found = true;
-        index += (__builtin_ctz(bitmask) >>
-                  4); // TODO: is this correct am I retarded?
+        index += __builtin_ctz(bitmask);
       }
     }
     index += 4;
@@ -117,20 +115,23 @@ static BenchTimer BM_linear_simd256_find(const usize arr_length) {
 int main(void) {
   srand(time(NULL));
 
-  BENCH(BM_linear_find(100), 10000, 100);
-  BENCH(BM_linear_find(1000), 10000, 100);
-  BENCH(BM_linear_find(10000), 10000, 100);
-  BENCH(BM_linear_find(100000), 10000, 100);
+  BENCH(BM_linear_find(100), 1000, 0);
+  BENCH(BM_linear_find(1000), 1000, 0);
+  BENCH(BM_linear_find(10000), 1000, 0);
+  BENCH(BM_linear_find(100000), 1000, 0);
+  BENCH(BM_linear_find(1000000), 1000, 0);
   printf("\n");
-  BENCH(BM_linear_simd128_find(100), 10000, 100);
-  BENCH(BM_linear_simd128_find(1000), 10000, 100);
-  BENCH(BM_linear_simd128_find(10000), 10000, 100);
-  BENCH(BM_linear_simd128_find(100000), 10000, 100);
+  BENCH(BM_linear_simd128_find(100), 1000, 0);
+  BENCH(BM_linear_simd128_find(1000), 1000, 0);
+  BENCH(BM_linear_simd128_find(10000), 1000, 0);
+  BENCH(BM_linear_simd128_find(100000), 1000, 0);
+  BENCH(BM_linear_simd128_find(1000000), 1000, 0);
   printf("\n");
-  BENCH(BM_linear_simd256_find(100), 10000, 100);
-  BENCH(BM_linear_simd256_find(1000), 10000, 100);
-  BENCH(BM_linear_simd256_find(10000), 10000, 100);
-  BENCH(BM_linear_simd256_find(100000), 10000, 100);
+  BENCH(BM_linear_simd256_find(100), 1000, 0);
+  BENCH(BM_linear_simd256_find(1000), 1000, 0);
+  BENCH(BM_linear_simd256_find(10000), 1000, 0);
+  BENCH(BM_linear_simd256_find(100000), 1000, 0);
+  BENCH(BM_linear_simd256_find(1000000), 1000, 0);
 
   return 0;
 }
