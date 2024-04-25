@@ -61,7 +61,7 @@ static void bench_timer_combine(BenchTimer *dest, BenchTimer *src) {
       bench_timer_combine(&sum, &timer);                                       \
     }                                                                          \
     double avg_nsec = (double)sum.sum / RUNS;                                  \
-    printf("%s: %lf \n", #FUNC, avg_nsec);                                     \
+    printf("%s: %lfns \n", #FUNC, avg_nsec);                                   \
   })
 
 #endif // BENCH_H_
