@@ -1,13 +1,13 @@
 #ifndef BENCH_H_
 #define BENCH_H_
 
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
-#include <uc/types.h>
 
-typedef struct BenchTimer BenchTimer;
-struct BenchTimer {
-  u64 sum;
+typedef struct bench_timer_t bench_timer_t;
+struct bench_timer_t {
+  uint64_t sum;
   struct timespec end;
   struct timespec start;
 };
@@ -20,11 +20,11 @@ struct BenchTimer {
 
 #define BENCH_NSECS_IN_SEC 1000000000
 
-static void bench_timer_start(BenchTimer *timer) {
+static void bench_timer_start(bench_timer_t *timer) {
   clock_gettime(CLOCK_MONOTONIC, &timer->start);
 }
 
-static u64 bench_timer_timespec_to_u64(const struct timespec *ts) {
+static uint64_t bench_timer_timespec_to_uint64_t(const struct timespec *ts) {
   return ts->tv_sec * BENCH_NSECS_IN_SEC + ts->tv_nsec;
 }
 
@@ -35,28 +35,28 @@ static void bench_timespec_normalize(struct timespec *spec) {
   }
 }
 
-static void bench_timer_end(BenchTimer *timer) {
+static void bench_timer_end(bench_timer_t *timer) {
   clock_gettime(CLOCK_MONOTONIC, &timer->end);
 
   bench_timespec_normalize(&timer->start);
   bench_timespec_normalize(&timer->end);
 
-  timer->sum = bench_timer_timespec_to_u64(&timer->end) -
-               bench_timer_timespec_to_u64(&timer->start);
+  timer->sum = bench_timer_timespec_to_uint64_t(&timer->end) -
+               bench_timer_timespec_to_uint64_t(&timer->start);
 }
 
-static void bench_timer_combine(BenchTimer *dest, BenchTimer *src) {
+static void bench_timer_combine(bench_timer_t *dest, bench_timer_t *src) {
   dest->sum += src->sum;
 }
 
 #define BENCH(FUNC, RUNS, WARMUP)                                              \
   ({                                                                           \
-    BenchTimer sum = {};                                                       \
-    BenchTimer timer;                                                          \
-    for (usize i = 0; i < WARMUP; ++i) {                                       \
+    bench_timer_t sum = {};                                                    \
+    bench_timer_t timer;                                                       \
+    for (size_t i = 0; i < WARMUP; ++i) {                                      \
       timer = FUNC;                                                            \
     }                                                                          \
-    for (usize i = 0; i < RUNS; ++i) {                                         \
+    for (size_t i = 0; i < RUNS; ++i) {                                        \
       timer = FUNC;                                                            \
       bench_timer_combine(&sum, &timer);                                       \
     }                                                                          \

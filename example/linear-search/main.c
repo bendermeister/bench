@@ -1,23 +1,24 @@
 #include "../../bench.h"
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <uc/types.h>
 
 #include <emmintrin.h>
 #include <immintrin.h>
 
-static BenchTimer BM_linear_find(usize arr_length) {
+static bench_timer_t BM_linear_find(size_t arr_length) {
   int *arr = malloc(arr_length * sizeof(*arr));
-  for (usize i = 0; i < arr_length; ++i) {
+  for (size_t i = 0; i < arr_length; ++i) {
     arr[i] = rand();
   }
 
-  BenchTimer timer = {};
+  bench_timer_t timer = {};
   volatile int target = arr[rand() % arr_length];
   volatile bool found = false;
 
   bench_timer_start(&timer);
-  for (usize i = 0; i < arr_length && !found; ++i) {
+  for (size_t i = 0; i < arr_length && !found; ++i) {
     found = arr[i] == target;
   }
   bench_timer_end(&timer);
@@ -26,20 +27,20 @@ static BenchTimer BM_linear_find(usize arr_length) {
   return timer;
 }
 
-static BenchTimer BM_linear_simd128_find(const usize arr_length) {
+static bench_timer_t BM_linear_simd128_find(const size_t arr_length) {
   int *arr = malloc(arr_length * sizeof(*arr));
-  for (usize i = 0; i < arr_length; ++i) {
+  for (size_t i = 0; i < arr_length; ++i) {
     arr[i] = rand();
   }
 
-  BenchTimer timer = {};
+  bench_timer_t timer = {};
   volatile int target = arr[rand() % arr_length];
   volatile bool found = false;
 
   bench_timer_start(&timer);
 
   __m128i target_mask = _mm_set1_epi32(target);
-  usize index = 0;
+  size_t index = 0;
   for (; arr_length - index >= 4; index += 4) {
     __m128i data = _mm_load_si128((void *)(arr + index));
     // using ps here is a bit dirty right?
@@ -60,18 +61,18 @@ static BenchTimer BM_linear_simd128_find(const usize arr_length) {
   return timer;
 }
 
-static BenchTimer BM_linear_simd256_find(const usize arr_length) {
+static bench_timer_t BM_linear_simd256_find(const size_t arr_length) {
   int *arr = aligned_alloc(32, arr_length * sizeof(*arr));
-  for (usize i = 0; i < arr_length; ++i) {
+  for (size_t i = 0; i < arr_length; ++i) {
     arr[i] = rand();
   }
 
-  BenchTimer timer = {};
+  bench_timer_t timer = {};
   volatile int target = arr[rand() % arr_length];
   volatile bool found = false;
 
   bench_timer_start(&timer);
-  usize index = 0;
+  size_t index = 0;
 
   // 256 bit linear find
   {
